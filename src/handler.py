@@ -226,9 +226,9 @@ def download_and_cache_models():
     Checks for models in the persistent /workspace volume and downloads them if they don't exist.
     """
     model_list = {
-        "Wan-AI/Wan2.1-T2V-14B": "/workspace/pretrained_models/Wan2.1-T2V-14B",
-        "facebook/wav2vec2-base-960h": "/workspace/pretrained_models/wav2vec2-base-960h",
-        "OmniAvatar/OmniAvatar-14B": "/workspace/pretrained_models/OmniAvatar-14B"
+        "Wan-AI/Wan2.1-T2V-14B": "/runpod-volume/pretrained_models/Wan2.1-T2V-14B",
+        "facebook/wav2vec2-base-960h": "/runpod-volume/pretrained_models/wav2vec2-base-960h",
+        "OmniAvatar/OmniAvatar-14B": "/runpod-volume/pretrained_models/OmniAvatar-14B"
     }
 
     for repo_id, local_dir in model_list.items():
