@@ -5,7 +5,17 @@ import random
 import math
 import librosa
 import numpy as np
+
+import importlib, site, sys
+from huggingface_hub import snapshot_download
+for sitedir in site.getsitepackages():
+    site.addsitedir(sitedir)
+
+# Clear caches so importlib will pick up new modules
+importlib.invalidate_caches()
+
 import torch
+print(f"Torch version: {torch.__version__}")
 import torch.nn as nn
 import torchvision.transforms as TT
 import torch.nn.functional as F
@@ -13,16 +23,22 @@ import torchvision.transforms as transforms
 from PIL import Image
 from tqdm import tqdm
 from functools import partial
-from omegaconf import OmegaConf
 from argparse import Namespace
 from transformers import Wav2Vec2FeatureExtractor
 import runpod
 import requests
 import tempfile
-from huggingface_hub import snapshot_download
+
 from peft import LoraConfig, inject_adapter_in_model
+from omegaconf import OmegaConf
+
+_args_cfg = OmegaConf.load("args_config.yaml")
+args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
 
 from OmniAvatar.utils.args_config import set_global_args
+
+set_global_args(args)
+
 from OmniAvatar.utils.io_utils import load_state_dict, save_video_as_grid_and_mp4
 from OmniAvatar.models.model_manager import ModelManager
 from OmniAvatar.schedulers.flow_match import FlowMatchScheduler
@@ -68,7 +84,6 @@ def resize_pad(image, ori_size, tgt_size):
     image = F.pad(image, (pad_left, pad_right, pad_top, pad_bottom), mode='constant', value=0)
     return image
 
-# --- Main Inference Pipeline Class (adapted from app.py) ---
 class WanInferencePipeline(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -239,17 +254,14 @@ def download_file(url):
                 tmp_file.write(chunk)
             return tmp_file.name
 
+set_seed(args.seed)
+
+download_and_cache_models()
+
+# Load model once when the worker starts
+pipeline = WanInferencePipeline(args)
+
 def handler(job):
-    _args_cfg = OmegaConf.load("args_config.yaml")
-    args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
-    set_global_args(args)
-    set_seed(args.seed)
-
-    download_and_cache_models()
-
-    # Load model once when the worker starts
-    pipeline = WanInferencePipeline(args)
-
     job_input = job['input']
     
     # --- Input Validation and Defaults ---
