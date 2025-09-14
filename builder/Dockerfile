@@ -18,3 +18,5 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy the source code for the handler and configs
 COPY src/ /app/
+
+CMD ["python", "-u", "/app/handler.py"]
