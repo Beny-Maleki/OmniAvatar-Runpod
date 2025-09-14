@@ -219,7 +219,6 @@ def download_file(url):
     """Downloads a file from a URL to a temporary file."""
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
-        # Use NamedTemporaryFile to get a unique filename
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(url)[1]) as tmp_file:
             for chunk in r.iter_content(chunk_size=8192):
                 tmp_file.write(chunk)
@@ -230,22 +229,35 @@ def handler(job):
     
     # --- Input Validation and Defaults ---
     prompt = job_input.get("prompt", "A realistic video of a person speaking.")
-    image_url = job_input.get("image_url")
-    audio_url = job_input.get("audio_url")
-    
-    if not image_url or not audio_url:
-        return {"error": "image_url and audio_url are required."}
-        
     num_steps = job_input.get("num_steps", args.num_steps)
     guidance_scale = job_input.get("guidance_scale", args.guidance_scale)
     audio_scale = job_input.get("audio_scale", args.audio_scale if args.audio_scale is not None else guidance_scale)
     negative_prompt = job_input.get("negative_prompt", args.negative_prompt)
 
+    image_path = None
+    audio_path = None
+
     try:
-        # Download input files
-        image_path = download_file(image_url)
-        audio_path = download_file(audio_url)
-        
+        # --- Handle Image Input ---
+        if "image_file" in job_input:
+            image_path = job_input["image_file"]
+            print(f"Using uploaded image file: {image_path}")
+        elif "image_url" in job_input:
+            print(f"Downloading image from URL: {job_input['image_url']}")
+            image_path = download_file(job_input["image_url"])
+        else:
+            return {"error": "Missing input. Provide 'image_file' for direct upload or 'image_url'."}
+
+        # --- Handle Audio Input ---
+        if "audio_file" in job_input:
+            audio_path = job_input["audio_file"]
+            print(f"Using uploaded audio file: {audio_path}")
+        elif "audio_url" in job_input:
+            print(f"Downloading audio from URL: {job_input['audio_url']}")
+            audio_path = download_file(job_input["audio_url"])
+        else:
+            return {"error": "Missing input. Provide 'audio_file' for direct upload or 'audio_url'."}
+
         # Create a unique directory for outputs
         output_dir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
         os.makedirs(output_dir, exist_ok=True)
@@ -263,8 +275,7 @@ def handler(job):
 
         torch.cuda.empty_cache()
         
-        # Save the output video
-        # The original audio is used for the final video
+        # Save the output video using the original audio path for muxing
         video_paths = save_video_as_grid_and_mp4(
             video_tensor,
             output_dir,
@@ -276,15 +287,18 @@ def handler(job):
         
         output_video_path = video_paths[0]
 
+        # Note: RunPod automatically handles uploading the output file if it's a path.
+        # Alternatively, you can return a URL if you upload it to your own storage.
         return {"video_path": output_video_path}
 
     except Exception as e:
         return {"error": str(e)}
     finally:
-        # Clean up downloaded files
-        if 'image_path' in locals() and os.path.exists(image_path):
+        # Clean up files that were downloaded from URLs.
+        # Files from direct uploads are managed by the RunPod environment.
+        if "image_url" in job_input and image_path and os.path.exists(image_path):
             os.remove(image_path)
-        if 'audio_path' in locals() and os.path.exists(audio_path):
+        if "audio_url" in job_input and audio_path and os.path.exists(audio_path):
             os.remove(audio_path)
 
 # Start the RunPod serverless worker
