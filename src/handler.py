@@ -20,11 +20,10 @@ import runpod
 import requests
 import tempfile
 from huggingface_hub import snapshot_download
+from peft import LoraConfig, inject_adapter_in_model
 
-# Add necessary imports from original app.py
 from OmniAvatar.utils.args_config import set_global_args
 from OmniAvatar.utils.io_utils import load_state_dict, save_video_as_grid_and_mp4
-from peft import LoraConfig, inject_adapter_in_model
 from OmniAvatar.models.model_manager import ModelManager
 from OmniAvatar.schedulers.flow_match import FlowMatchScheduler
 from OmniAvatar.wan_video import WanVideoPipeline
@@ -231,17 +230,6 @@ def download_and_cache_models():
             print(f"Models already exist in {local_dir}. Skipping download.")
     print("All models are available in the persistent volume.")
 
-# --- RunPod Handler ---
-_args_cfg = OmegaConf.load("args_config.yaml")
-args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
-set_global_args(args)
-set_seed(args.seed)
-
-download_and_cache_models()
-
-# Load model once when the worker starts
-pipeline = WanInferencePipeline(args)
-
 def download_file(url):
     """Downloads a file from a URL to a temporary file."""
     with requests.get(url, stream=True) as r:
@@ -252,6 +240,16 @@ def download_file(url):
             return tmp_file.name
 
 def handler(job):
+    _args_cfg = OmegaConf.load("args_config.yaml")
+    args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
+    set_global_args(args)
+    set_seed(args.seed)
+
+    download_and_cache_models()
+
+    # Load model once when the worker starts
+    pipeline = WanInferencePipeline(args)
+
     job_input = job['input']
     
     # --- Input Validation and Defaults ---
