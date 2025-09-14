@@ -9,12 +9,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python requirements
-COPY requirements.txt .
+COPY builder/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Download models from Hugging Face
-COPY download_models.py .
+COPY builder/download_models.py .
 RUN python download_models.py
 
 # Install the pre-downloaded FlashAttention wheel
