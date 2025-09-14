@@ -128,7 +128,7 @@ class WanInferencePipeline(nn.Module):
     def add_lora_to_model(self, model):
         lora_config = LoraConfig(
             r=self.args.lora_rank, lora_alpha=self.args.lora_alpha,
-            init_lora_weights="kaiming", target_modules=self.args.lora_target_modules.split(",")
+            init_lora_weights=True, target_modules=self.args.lora_target_modules.split(",")
         )
         model = inject_adapter_in_model(lora_config, model)
         if self.args.pretrained_lora_path is not None:
@@ -223,7 +223,7 @@ class WanInferencePipeline(nn.Module):
 
 def download_and_cache_models():
     """
-    Checks for models in the persistent /workspace volume and downloads them if they don't exist.
+    Checks for models in the persistent /runpod volume and downloads them if they don't exist.
     """
     model_list = {
         "Wan-AI/Wan2.1-T2V-14B": "/runpod-volume/pretrained_models/Wan2.1-T2V-14B",
