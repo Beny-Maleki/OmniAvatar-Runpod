@@ -238,8 +238,6 @@ def download_and_cache_models():
                 repo_id=repo_id,
                 local_dir=local_dir,
                 local_dir_use_symlinks=False,
-                # Using etag_as_filename helps with resuming downloads
-                etag_as_filename=True
             )
         else:
             print(f"Models already exist in {local_dir}. Skipping download.")
