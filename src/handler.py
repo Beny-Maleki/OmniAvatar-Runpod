@@ -207,37 +207,29 @@ class WanInferencePipeline(nn.Module):
         video = torch.cat(video, dim=1)[:, :ori_audio_len + 1]
         return video
 
-def download_models_if_needed():
-    """Checks for models and downloads them if they are not present."""
-    omni_avatar_path = "/app/pretrained_models/OmniAvatar-14B"
-    wan21_path = "/app/pretrained_models/Wan2.1-T2V-14B"
-    wav2vec_path = "/app/pretrained_models/wav2vec2-base-960h"
+def download_and_cache_models():
+    """
+    Checks for models in the persistent /workspace volume and downloads them if they don't exist.
+    """
+    model_list = {
+        "Wan-AI/Wan2.1-T2V-14B": "/workspace/pretrained_models/Wan2.1-T2V-14B",
+        "facebook/wav2vec2-base-960h": "/workspace/pretrained_models/wav2vec2-base-960h",
+        "OmniAvatar/OmniAvatar-14B": "/workspace/pretrained_models/OmniAvatar-14B"
+    }
 
-    if not os.path.exists(os.path.join(omni_avatar_path, "pytorch_model.pt")):
-        print("Downloading OmniAvatar-14B model...")
-        snapshot_download(
-            repo_id="OmniAvatar/OmniAvatar-14B",
-            local_dir=omni_avatar_path,
-            local_dir_use_symlinks=False
-        )
-
-    if not os.path.exists(os.path.join(wan21_path, "diffusion_pytorch_model-00001-of-00006.safetensors")):
-        print("Downloading Wan2.1-T2V-14B model...")
-        snapshot_download(
-            repo_id="Wan-AI/Wan2.1-T2V-14B",
-            local_dir=wan21_path,
-            local_dir_use_symlinks=False
-        )
-
-    if not os.path.exists(os.path.join(wav2vec_path, "config.json")):
-        print("Downloading wav2vec2-base-960h model...")
-        snapshot_download(
-            repo_id="facebook/wav2vec2-base-960h",
-            local_dir=wav2vec_path,
-            local_dir_use_symlinks=False
-        )
-    
-    print("All models are available.")
+    for repo_id, local_dir in model_list.items():
+        if not os.path.exists(local_dir):
+            print(f"Models not found in {local_dir}. Downloading from Hugging Face Hub...")
+            snapshot_download(
+                repo_id=repo_id,
+                local_dir=local_dir,
+                local_dir_use_symlinks=False,
+                # Using etag_as_filename helps with resuming downloads
+                etag_as_filename=True
+            )
+        else:
+            print(f"Models already exist in {local_dir}. Skipping download.")
+    print("All models are available in the persistent volume.")
 
 # --- RunPod Handler ---
 _args_cfg = OmegaConf.load("args_config.yaml")
@@ -245,7 +237,7 @@ args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
 set_global_args(args)
 set_seed(args.seed)
 
-download_models_if_needed()
+download_and_cache_models()
 
 # Load model once when the worker starts
 pipeline = WanInferencePipeline(args)
