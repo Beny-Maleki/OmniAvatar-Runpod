@@ -17,7 +17,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the source code for the handler and configs
-# Ensure your build context is the `OmniAvatar-runpod` directory
 COPY src/ /app/
 
 # Set the command to run the worker
