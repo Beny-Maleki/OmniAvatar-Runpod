@@ -18,6 +18,3 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy the source code for the handler and configs
 COPY src/ /app/
-
-# Set the command to run the worker
-CMD ["python", "-u", "/runpod-wrapper.py"]

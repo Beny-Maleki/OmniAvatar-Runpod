@@ -8,7 +8,7 @@ dtype: bf16
 # Correct paths inside the Docker container
 exp_path: /workspace/pretrained_models/OmniAvatar-14B
 text_encoder_path: /workspace/pretrained_models/Wan2.1-T2V-14B/models_t5_umt5-xxl-enc-bf16.pth
-dit_path: /workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00001-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00002-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00003-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00004-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00005-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00006.safetensors
+dit_path: /workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00001-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00002-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00003-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00004-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00005-of-00006.safetensors,/workspace/pretrained_models/Wan2.1-T2V-14B/diffusion_pytorch_model-00006-of-00006.safetensors
 vae_path: /workspace/pretrained_models/Wan2.1-T2V-14B/Wan2.1_VAE.pth
 wav2vec_path: /workspace/pretrained_models/wav2vec2-base-960h
 
