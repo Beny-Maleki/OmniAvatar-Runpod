@@ -1,0 +1,15 @@
+runpod
+torch
+torchaudio
+torchvision
+omegaconf
+peft
+transformers
+accelerate
+librosa
+gradio_extendedaudio
+gradio_extendedimage
+huggingface_hub
+Pillow
+ffmpeg-python
+scipy
