@@ -10,3 +10,5 @@ librosa
 Pillow
 ffmpeg-python
 scipy
+imageio
+imageio-ffmpeg
