@@ -19,6 +19,7 @@ from transformers import Wav2Vec2FeatureExtractor
 import runpod
 import requests
 import tempfile
+from huggingface_hub import snapshot_download
 
 # Add necessary imports from original app.py
 from OmniAvatar.utils.args_config import set_global_args
@@ -206,11 +207,45 @@ class WanInferencePipeline(nn.Module):
         video = torch.cat(video, dim=1)[:, :ori_audio_len + 1]
         return video
 
+def download_models_if_needed():
+    """Checks for models and downloads them if they are not present."""
+    omni_avatar_path = "/app/pretrained_models/OmniAvatar-14B"
+    wan21_path = "/app/pretrained_models/Wan2.1-T2V-14B"
+    wav2vec_path = "/app/pretrained_models/wav2vec2-base-960h"
+
+    if not os.path.exists(os.path.join(omni_avatar_path, "pytorch_model.pt")):
+        print("Downloading OmniAvatar-14B model...")
+        snapshot_download(
+            repo_id="OmniAvatar/OmniAvatar-14B",
+            local_dir=omni_avatar_path,
+            local_dir_use_symlinks=False
+        )
+
+    if not os.path.exists(os.path.join(wan21_path, "diffusion_pytorch_model-00001-of-00006.safetensors")):
+        print("Downloading Wan2.1-T2V-14B model...")
+        snapshot_download(
+            repo_id="Wan-AI/Wan2.1-T2V-14B",
+            local_dir=wan21_path,
+            local_dir_use_symlinks=False
+        )
+
+    if not os.path.exists(os.path.join(wav2vec_path, "config.json")):
+        print("Downloading wav2vec2-base-960h model...")
+        snapshot_download(
+            repo_id="facebook/wav2vec2-base-960h",
+            local_dir=wav2vec_path,
+            local_dir_use_symlinks=False
+        )
+    
+    print("All models are available.")
+
 # --- RunPod Handler ---
 _args_cfg = OmegaConf.load("args_config.yaml")
 args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
 set_global_args(args)
 set_seed(args.seed)
+
+download_models_if_needed()
 
 # Load model once when the worker starts
 pipeline = WanInferencePipeline(args)
