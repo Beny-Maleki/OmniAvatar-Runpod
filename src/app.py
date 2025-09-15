@@ -361,20 +361,33 @@ class WanInferencePipeline(nn.Module):
 
 
 # --- Global Model Initialization ---
-print("Downloading models to network storage...")
-snapshot_download(
-    repo_id="Wan-AI/Wan2.1-T2V-14B", 
-    local_dir="/runpod-volume/pretrained_models/Wan2.1-T2V-14B"
-)
-snapshot_download(
-    repo_id="facebook/wav2vec2-base-960h", 
-    local_dir="/runpod-volume/pretrained_models/wav2vec2-base-960h"
-)
-snapshot_download(
-    repo_id="OmniAvatar/OmniAvatar-14B", 
-    local_dir="/runpod-volume/pretrained_models/OmniAvatar-14B"
-)
-print("Model download complete.")
+models_to_download = [
+    {
+        "repo_id": "Wan-AI/Wan2.1-T2V-14B",
+        "local_dir": "/runpod-volume/pretrained_models/Wan2.1-T2V-14B"
+    },
+    {
+        "repo_id": "facebook/wav2vec2-base-960h",
+        "local_dir": "/runpod-volume/pretrained_models/wav2vec2-base-960h"
+    },
+    {
+        "repo_id": "OmniAvatar/OmniAvatar-14B",
+        "local_dir": "/runpod-volume/pretrained_models/OmniAvatar-14B"
+    }
+]
+
+# Loop through and download only if they don't exist
+for model in models_to_download:
+    if not os.path.exists(model["local_dir"]):
+        print(f"Model '{model['repo_id']}' not found. Downloading...")
+        snapshot_download(
+            repo_id=model["repo_id"],
+            local_dir=model["local_dir"]
+        )
+    else:
+        print(f"Model '{model['repo_id']}' already exists. Skipping download.")
+
+print("Model check complete.")
 
 print("Initializing WanInferencePipeline...")
 inferpipe = WanInferencePipeline(args)
