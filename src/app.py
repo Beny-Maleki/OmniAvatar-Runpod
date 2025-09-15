@@ -40,8 +40,6 @@ except Exception as e:
 print("Loading args_config.yaml...")
 _args_cfg = OmegaConf.load("args_config.yaml")
 args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
-set_global_args(args)
-set_seed(args.seed)
 os.environ["PROCESSED_RESULTS"] = f"{os.getcwd()}/runpod_results"
 print("Config loaded.")
 
@@ -60,6 +58,7 @@ for sitedir in site.getsitepackages():
 importlib.invalidate_caches()
 
 from OmniAvatar.utils.args_config import set_global_args
+set_global_args(args)
 from OmniAvatar.utils.io_utils import load_state_dict
 from peft import LoraConfig, inject_adapter_in_model
 from OmniAvatar.models.model_manager import ModelManager
@@ -109,6 +108,8 @@ def set_seed(seed: int = 42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+set_seed(args.seed)
 
 def read_from_file(p):
     with open(p, "r") as fin:
