@@ -18,6 +18,14 @@ from PIL import Image
 
 import torch
 import torch.nn as nn
+import torchaudio
+import torchvision.transforms as TT
+from transformers import Wav2Vec2FeatureExtractor
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+
+from huggingface_hub import hf_hub_download, snapshot_download
+
 from tqdm import tqdm
 from functools import partial
 from omegaconf import OmegaConf
@@ -42,15 +50,6 @@ _args_cfg = OmegaConf.load("args_config.yaml")
 args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
 os.environ["PROCESSED_RESULTS"] = f"{os.getcwd()}/runpod_results"
 print("Config loaded.")
-
-
-import torchaudio
-import torchvision.transforms as TT
-from transformers import Wav2Vec2FeatureExtractor
-import torchvision.transforms as transforms
-import torch.nn.functional as F
-
-from huggingface_hub import hf_hub_download, snapshot_download
 
 # --- Re-discover packages ---
 for sitedir in site.getsitepackages():
@@ -361,11 +360,19 @@ class WanInferencePipeline(nn.Module):
 
 
 # --- Global Model Initialization ---
-
-print("Downloading models...")
-snapshot_download(repo_id="Wan-AI/Wan2.1-T2V-14B", local_dir="./pretrained_models/Wan2.1-T2V-14B")
-snapshot_download(repo_id="facebook/wav2vec2-base-960h", local_dir="./pretrained_models/wav2vec2-base-960h")
-snapshot_download(repo_id="OmniAvatar/OmniAvatar-14B", local_dir="./pretrained_models/OmniAvatar-14B")
+print("Downloading models to network storage...")
+snapshot_download(
+    repo_id="Wan-AI/Wan2.1-T2V-14B", 
+    local_dir="/runpod-volume/pretrained_models/Wan2.1-T2V-14B"
+)
+snapshot_download(
+    repo_id="facebook/wav2vec2-base-960h", 
+    local_dir="/runpod-volume/pretrained_models/wav2vec2-base-960h"
+)
+snapshot_download(
+    repo_id="OmniAvatar/OmniAvatar-14B", 
+    local_dir="/runpod-volume/pretrained_models/OmniAvatar-14B"
+)
 print("Model download complete.")
 
 print("Initializing WanInferencePipeline...")
