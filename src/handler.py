@@ -1,5 +1,4 @@
 import os
-import sys
 import uuid
 import random
 import math
@@ -105,7 +104,7 @@ class WanInferencePipeline(nn.Module):
         ckpt_path = f'{self.args.exp_path}/pytorch_model.pt'
         assert os.path.exists(ckpt_path), f"pytorch_model.pt not found in {self.args.exp_path}"
         if self.args.train_architecture == 'lora':
-            self.args.pretrained_lora_path = pretrained_lora_path = ckpt_path
+            self.args.pretrained_lora_path = ckpt_path
         else:
             resume_path = ckpt_path
         
@@ -117,23 +116,32 @@ class WanInferencePipeline(nn.Module):
         pipe = WanVideoPipeline.from_model_manager(model_manager, torch_dtype=self.dtype, device="cuda", use_usp=False, infer=True)
 
         if self.args.train_architecture == "lora":
+            print(f'Use LoRA: lora rank: {self.args.lora_rank}, lora alpha: {self.args.lora_alpha}')
             self.add_lora_to_model(pipe.denoising_model())
         else:
-            pipe.denoising_model().load_state_dict(load_state_dict(resume_path), strict=True)
+            missing_keys, unexpected_keys = pipe.denoising_model().load_state_dict(load_state_dict(resume_path), strict=True)
+            print(f"load from {resume_path}, {len(missing_keys)} missing keys, {len(unexpected_keys)} unexpected keys")
         
         pipe.requires_grad_(False)
         pipe.eval()
         return pipe
     
     def add_lora_to_model(self, model):
+        if self.args.init_lora_weights == "kaiming":
+            init_lora_weights = True
         lora_config = LoraConfig(
             r=self.args.lora_rank, lora_alpha=self.args.lora_alpha,
-            init_lora_weights=True, target_modules=self.args.lora_target_modules.split(",")
+            init_lora_weights=init_lora_weights, target_modules=self.args.lora_target_modules.split(",")
         )
         model = inject_adapter_in_model(lora_config, model)
         if self.args.pretrained_lora_path is not None:
             state_dict = load_state_dict(self.args.pretrained_lora_path, torch_dtype=self.dtype)
-            model.load_state_dict(state_dict, strict=False)
+            missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+            all_keys = [i for i, _ in model.named_parameters()]
+            num_updated_keys = len(all_keys) - len(missing_keys)
+            num_unexpected_keys = len(unexpected_keys)
+
+            print(f"{num_updated_keys} parameters are loaded from {pretrained_lora_path}. {num_unexpected_keys} parameters are unexpected.")
 
     @torch.no_grad()
     def forward(self, prompt, image_path, audio_path, num_steps, guidance_scale, audio_scale, negative_prompt):
