@@ -1,3 +1,4 @@
+import runpod
 import os
 import sys
 import uuid
@@ -472,3 +473,5 @@ def handler(job):
         # --- 7. Cleanup ---
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
+
+runpod.serverless.start({"handler": handler})
