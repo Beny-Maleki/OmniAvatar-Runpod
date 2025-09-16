@@ -18,7 +18,7 @@ s3fs
 json_repair
 pandas
 pydantic
-vector_quantize_pytorch
+vector-quantize-pytorch==1.14.2
 loguru
 pydub
 ruff==0.12.2
