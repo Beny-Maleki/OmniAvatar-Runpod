@@ -1,5 +1,5 @@
 # Use a leaner base image for a smaller final size
-FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04
+FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
 # Set the working directory
 WORKDIR /app
