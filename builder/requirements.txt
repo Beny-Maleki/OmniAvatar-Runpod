@@ -10,7 +10,7 @@ einops
 omegaconf
 torchvision
 ninja
-flash-attn
+flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.8/flash_attn-2.5.8+cu118torch2.1cxx11-cp310-cp310-linux_x86_64.whl
 
 dacite
 boto3==1.35.36
