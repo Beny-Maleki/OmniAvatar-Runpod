@@ -1,6 +1,5 @@
 import runpod
 import os
-import sys
 import uuid
 import shutil
 import base64
@@ -8,9 +7,7 @@ import requests # For downloading files from URLs
 import subprocess
 
 # --- Original project imports ---
-import importlib, site
 from glob import glob
-from datetime import datetime
 import math
 import random
 import librosa
@@ -32,30 +29,11 @@ from functools import partial
 from omegaconf import OmegaConf
 from argparse import Namespace
 
-# This part of the code runs only once when the worker starts.
-print("Attempting to install FlashAttention...")
-try:
-    flash_attention_wheel = hf_hub_download(
-        repo_id="alexnasa/flash-attn-3",
-        repo_type="model",
-        filename="128/flash_attn_3-3.0.0b1-cp39-abi3-linux_x86_64.whl",
-    )
-    sh(f"pip install {flash_attention_wheel}")
-    importlib.invalidate_caches()
-    print("FlashAttention installed successfully.")
-except Exception as e:
-    print(f"⚠️ Could not install FlashAttention: {e}")
-
 print("Loading args_config.yaml...")
 _args_cfg = OmegaConf.load("args_config.yaml")
 args = Namespace(**OmegaConf.to_container(_args_cfg, resolve=True))
 os.environ["PROCESSED_RESULTS"] = f"{os.getcwd()}/runpod_results"
 print("Config loaded.")
-
-# --- Re-discover packages ---
-for sitedir in site.getsitepackages():
-    site.addsitedir(sitedir)
-importlib.invalidate_caches()
 
 from OmniAvatar.utils.args_config import set_global_args
 set_global_args(args)
@@ -405,7 +383,6 @@ def handler(job):
     output_dir = os.path.join(os.environ["PROCESSED_RESULTS"], session_id)
     
     try:
-        # --- 1. Parse and Validate Input ---
         image_url = job_input.get("image_url")
         audio_url = job_input.get("audio_url")
 
@@ -425,16 +402,13 @@ def handler(job):
         else:
             orientation_state = [[720, 400]] # Default
 
-        # --- 2. Download Input Files ---
         print(f"Downloading files for job {session_id}...")
-        # Determine file extension from URL if possible, otherwise guess
         img_ext = os.path.splitext(image_url.split('?')[0])[-1][1:] or 'png'
         audio_ext = os.path.splitext(audio_url.split('?')[0])[-1][1:] or 'wav'
         
         image_path = download_file(image_url, output_dir, img_ext)
         audio_path = download_file(audio_url, output_dir, audio_ext)
 
-        # --- 3. Preprocess Inputs ---
         input_audio_path = audio_path
         if args.silence_duration_s > 0:
             audio_dir = os.path.join(output_dir, 'audio')
@@ -442,7 +416,6 @@ def handler(job):
             input_audio_path = os.path.join(audio_dir, "audio_input.wav")
             add_silence_to_audio_ffmpeg(audio_path, input_audio_path, args.silence_duration_s)
         
-        # --- 4. Run Inference ---
         print(f"Starting inference for job {session_id} with {num_steps} steps...")
         video_tensor = inferpipe(
             prompt=text,
@@ -454,7 +427,6 @@ def handler(job):
         )
         torch.cuda.empty_cache()
 
-        # --- 5. Post-process and Save Output Video ---
         final_audio_path = os.path.join(output_dir, "audio_out.wav")
         add_silence_to_audio_ffmpeg(audio_path, final_audio_path, 1.0 / args.fps + args.silence_duration_s)
 
@@ -469,7 +441,6 @@ def handler(job):
         )
         output_video_path = video_paths[0]
         
-        # --- 6. Encode Output for JSON Response ---
         video_base64 = file_to_base64(output_video_path)
 
         return {
@@ -477,13 +448,11 @@ def handler(job):
         }
 
     except Exception as e:
-        # It's good practice to log the full traceback for debugging
         import traceback
         print(traceback.format_exc())
         return {"error": f"An error occurred: {str(e)}"}
     
     finally:
-        # --- 7. Cleanup ---
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
 

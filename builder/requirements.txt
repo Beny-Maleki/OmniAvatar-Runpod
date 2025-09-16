@@ -10,9 +10,7 @@ einops
 omegaconf
 torchvision
 ninja
-
-gradio_extendedimage @ https://github.com/OutofAi/gradio-extendedimage/releases/download/0.0.2/gradio_extendedimage-0.0.2-py3-none-any.whl
-gradio_extendedaudio @ https://github.com/OutofAi/gradio-extendedaudio/releases/download/0.0.5/gradio_extendedaudio-0.0.5-py3-none-any.whl
+flash-attn
 
 dacite
 boto3==1.35.36
