@@ -10,7 +10,6 @@ einops
 omegaconf
 torchvision
 ninja
-flash-attn --no-build-isolation
 
 dacite
 boto3==1.35.36
