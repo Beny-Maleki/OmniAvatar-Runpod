@@ -7,7 +7,7 @@ torchvision==0.19.0+cu121
 torchaudio==2.4.0+cu121
 --extra-index-url https://download.pytorch.org/whl/cu121
 
-flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.0.post2/flash_attn-2.8.0.post2+cu12torch2.4cxx11abiTRUE-cp311-cp311-linux_x86_64.whl
+flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.0.post2/flash_attn-2.8.0.post2+cu12torch2.4cxx11abiFALSE-cp311-cp311-linux_x86_64.whl
 
 vector-quantize-pytorch==1.14.2
 peft==0.15.1
