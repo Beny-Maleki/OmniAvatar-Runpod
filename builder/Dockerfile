@@ -1,4 +1,4 @@
-FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
+FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 
 # Set the working directory
 WORKDIR /app
@@ -15,9 +15,8 @@ COPY builder/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --ignore-installed blinker && \
     pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir --no-build-isolation flash-attn==2.5.8
 
-# Copy the source code for the app and configs
+# Copy the source code for the handler and configs
 COPY src/ /app/
 
 CMD ["python", "-u", "/app/app.py"]
